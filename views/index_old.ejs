@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="Hexaware R&D Lab">
+    <!-- <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script> -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,600">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="assets/css/style1.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="shortcut icon" href="images/logo.ico" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <title>Hexaware Temporary ID </title>
+    <script src="https://webrtc.github.io/adapter/adapter-5.0.4.js" type="text/javascript"></script>
+
+    <script>
+      
+        function alertbar(){
+            document.getElementById('startAndStop').click()
+            if('<%=msg%>' == ""){
+                $('#alert').html("<div class='alert alert-primary'>"+"<span>"+"Put your face inside the box and take snapshot."+"</span>"+"</div>")
+            }
+            else{
+                $('#alert').html("<div class='alert alert-danger'>"+"<span>"+'<%=msg%>'+"</span>"+"</div>")
+            }       
+        }
+    </script>
+
+</head>
+
+
+<body data-spy="scroll" data-target=".navbar" onload="alertbar()">
+    <div class="ts-page-wrapper" id="page-top">
+        <header id="ts-hero" class="d-block py-5 ts-separate-bg-element" data-bg-image="images/background.jpg" 
+            data-bg-parallax-speed="3" data-mask-bottom-wn-color="#fff">  
+            <div>
+                <div class="row">
+                    <div class="col-md-4 col-md-offset-4">
+                        <alert id="processalert"></alert>
+                    </div>
+                </div>
+            </div>            
+                <div >
+                    <input type="submit" id="startAndStop" class="button" style="display:none" />
+                    
+                </div>
+                <p class="err" id="errorMessage"></p>
+                <div>
+                    <div class ="row">
+                        <div class="col-sm col-centered">
+                            
+                          <video id="videoInput" width=320 height=240 style="display:none"></video>                 
+                         <canvas id="canvasOutput" width=320 height=240   style= "position: relative; left: 570px;    border-radius: 20px"></canvas>                              
+                            <br>
+                            <br>
+                            <br>
+                        </div>
+                    </div>
+                       
+                    
+                </div>
+            </header>
+    <script src="../public/utils.js" type="text/javascript"></script>
+    <script src="../public/utils.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        let utils = new Utils('errorMessage');
+        // utils.loadCode('codeSnippet', 'codeEditor');
+        let streaming = false;
+        let videoInput = document.getElementById('videoInput');
+        let startAndStop = document.getElementById('startAndStop');
+        let canvasOutput = document.getElementById('canvasOutput');
+        let canvasContext = canvasOutput.getContext('2d');
+        
+        startAndStop.addEventListener('click', () => {
+            $('#processalert').html("<div class='alert alert-primary'>"+"<span>"+"  Camera is starting........ ."+"</span>"+"</div>")
+
+            if (!streaming) {
+                utils.clearError();
+                utils.startCamera('qvga', onVideoStarted, 'videoInput');
+            } else {
+                utils.stopCamera();
+                onVideoStopped();
+            }
+        });
+        let framecount = 0;
+
+     
+        function onVideoStarted() {
+         
+            streaming = true;
+            startAndStop.innerText = 'Stop';
+            videoInput.width = videoInput.videoWidth;
+            videoInput.height = videoInput.videoHeight;
+            // utils.executeCode('codeEditor');
+            let video = document.getElementById('videoInput');
+            let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+            let dst = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+            let gray = new cv.Mat();
+            var cap = new cv.VideoCapture(video);
+            let faces = new cv.RectVector();
+            let classifier = new cv.CascadeClassifier();
+            // load pre-trained classifiers
+            classifier.load('haarcascade_frontalface_default.xml');
+            const FPS = 30;
+         
+
+            function processVideo() {
+                try {
+                    if (!streaming) {
+                        // clean and stop.
+                        src.delete();
+                        dst.delete();
+                        gray.delete();
+                        faces.delete();
+                        classifier.delete();
+                        return;
+                    }
+                    let begin = Date.now();
+                    $('#processalert').html("<div class='alert alert-primary'>"+"<span>"+" Please wait !! we are capturing your image."+"</span>"+"</div>")
+                    // start processing.
+                    cap.read(src);
+                    src.copyTo(dst);
+                    
+                     cv.cvtColor(dst, gray, cv.COLOR_RGBA2GRAY, 0);
+                    // detect faces.
+
+                    classifier.detectMultiScale(gray, faces, 1.1, 3, 0);
+                    // draw faces.
+                    //reseting framecount if user is not not stabilized
+                    if (faces.size() == 0) { framecount = 0 };
+                    if (faces.size() > 1) {
+
+                        console.log("detecting multiple faces");
+                        framecount = 0;
+                    }
+                    //processing each frace
+                    for (let i = 0; i < faces.size(); ++i) {
+                        let face = faces.get(i);
+                        if (faces.size() == 1) {
+                            console.log(face.width, face.height);
+                            if (face.width > 60) {
+                                console.log("tracking this face");
+                                console.log("tracking face in frame", framecount++);
+                                if (framecount == 10) {
+                                    console.log("Taking snap after", framecount);
+                                    framecount = 0
+                                    // var image =snapshot()
+                                    var canvas = document.getElementById("canvasOutput");
+                                    var image = canvas.toDataURL("image/png");
+                                    // document.getElementById('submitPhoto').click()
+                                    console.log(image)
+                                  
+                                    document.getElementById('myImage').value =image
+                                    document.getElementById('submitPhoto').click()
+                                    console.log(myImage)
+
+                                     onVideoStopped()
+                                    // alert("took a snap") 
+                                }
+                            }
+                        }
+                        let point1 = new cv.Point(face.x, face.y);
+                        let point2 = new cv.Point(face.x + face.width, face.y + face.height);
+                        cv.rectangle(dst, point1, point2, [255, 0, 0, 255]);
+                    }
+                    cv.imshow('canvasOutput', dst);
+                   var data=cv.imread(canvasOutput)
+                   
+                    // schedule the next one.
+                    let delay = 1000 / FPS - (Date.now() - begin);
+                    setTimeout(processVideo, delay);
+                } catch (err) {
+                    utils.printError(err);
+                }
+            };
+            // schedule the first one.
+            setTimeout(processVideo, 0);
+        }    
+        function onVideoStopped() {
+            $('#processalert').html("<div class='alert alert-primary'>"+"<span>"+"  Please wait!!! We are recognizing you ."+"</span>"+"</div>")
+            streaming = false;
+            canvasContext.clearRect(0, 0, canvasOutput.width, canvasOutput.height);
+            startAndStop.innerText = 'Start';
+        }
+        utils.loadOpenCv(() => {
+            let faceCascadeFile = 'haarcascade_frontalface_default.xml';
+            utils.createFileFromUrl(faceCascadeFile, faceCascadeFile, () => {
+                startAndStop.removeAttribute('disabled');
+            });
+        });
+
+    </script>
+
+<div>
+    <div class ="row">
+        <form id="myform" method="post" action="/upload" >
+            <!-- <input id="mydata" type="hidden" name="mydata" value="" /> -->
+            <input id="myImage" type="hidden" name="myImage" value="" />
+            <input id="submitPhoto" class="buttonSubmit" style="display:none" type="submit"/> 
+            </div>
+        </form>
+    </div>
+        
+    </div>
+    
+       
+    <footer id="ts-footer py-2">
+            <div class="p-0 ts-block text-center">
+                    <div class="text-center py-3">
+                            
+                                <div  data-toggle="tooltip" data-placement="bottom" title="Go to home page">
+  
+                                    <!-- <input type="submit" class="fa fa-home"style="color:yellow" value=""/> -->
+                                    <a href ="/" class="fa fa-home fa-2x" style="color:black"></a>
+                                
+                                </div>
+                        <!-- <button>Temporary id card generator</button> -->
+    
+                    <div class="container">
+                        <small>© 2018 Hexaware Technologies, All Rights Reserved</small>
+                        <br>
+                        <small>Powered by Innovation Lab</small>
+                    </div>
+                <!--end container-->
+            </div>
+            <!--end ts-block-->
+            <div class ="fixed-bottom" align="right">
+                <h6 >Build No : <%=pjson.version%>  </h6>
+                </div>
+                </div>
+        </footer>
+
+    
+
+    <script src="assets/js/jquery-3.3.1.min.js"></script>
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/js/imagesloaded.pkgd.min.js"></script>
+    <script src="assets/js/isInViewport.jquery.js"></script>
+    <script src="assets/js/jquery.particleground.min.js"></script>
+    <script src="assets/js/scrolla.jquery.min.js"></script>
+    <script src="assets/js/custom.js"></script>
+</body>
+
+</html>
+
+

@@ -1,0 +1,85 @@
+/* 
+ .card {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    border: 1px solid;
+    max-width: 600px;
+    padding: 25px;
+    height: 300px;
+    margin: auto;
+    display: inline-block;
+    line-height:5px;
+    text-align: left;
+    font-family: arial;
+   
+  }
+
+  .card-body{
+    text-align : center;
+  } */
+  .card {
+    border: 1px solid ; 
+    max-width: 200px;
+    padding: 0px;
+    height:300px;
+    line-height: 1px;
+    font-size:15px;
+    margin: auto;
+    margin-top: 0px;
+    box-sizing:border-box;
+    text-align: center;
+    font-family: arial;
+    display: block
+  }
+  #table{
+    /* font-size:  12px; */
+    /* margin: 10px 10px 10px 20px; */
+    position: relative;
+    left:30px;
+
+    /* left:230px; */
+   
+  }
+  #profileimage{   
+    /* right: 75px; */
+    /* margin: 0px 10px 0px 10px; */
+    /* height:100px; 
+    width: 100px; */
+    /* border:5px solid #e4e7ff;  */
+    border-radius:50%;
+    position: relative;
+    left:-20px;
+    object-fit: cover;
+    /* height:5px; */
+  }
+  #cardimage { 
+     /* position: relative;
+    left: -150px;  */
+    /* margin: 0px 10px 0px 10px; */
+    position: relative;
+    left:-25px;
+
+    height:70px;
+
+  }
+  #text{
+    position: relative;
+    /* top: -38px;
+    right:-100px */
+    margin: 0px 10px 0px 20px;
+
+
+  }
+  @page {
+  size: A6;
+  margin: 0;
+}
+@media print {
+
+  html, body {
+    height:100%; 
+    margin: 0 !important; 
+    padding: 0 !important;
+    overflow: hidden;
+  }
+
+}
